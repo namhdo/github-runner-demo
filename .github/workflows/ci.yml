@@ -17,11 +17,6 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-        
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
           
       - name: Install linting tools
         run: |
@@ -30,8 +25,6 @@ jobs:
           
       - name: Run flake8 linter
         run: |
-          # Check for syntax errors and code style
-          # --max-line-length=120: allows lines up to 120 characters
           flake8 src/ tests/ --max-line-length=120 --statistics
 
   # JOB 2: Run Unit Tests
@@ -42,11 +35,6 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-        
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
           
       - name: Install dependencies
         run: |
@@ -55,10 +43,7 @@ jobs:
           
       - name: Run tests with coverage report
         run: |
-          pytest tests/ -v \
-            --cov=src \
-            --cov-report=term-missing \
-            --cov-report=xml:coverage.xml
+          python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml:coverage.xml
             
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
