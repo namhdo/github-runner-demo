@@ -1,81 +1,79 @@
-# CI Pipeline github-runner-demo [cite: 300, 301]
-# Uses GitHub Self-hosted Runner for automated build and testing [cite: 302]
-[cite_start]name: CI Pipeline with Self-hosted Runner [cite: 303]
+# CI Pipeline -- github-runner-demo
+# Uses GitHub Self-hosted Runner for automated build and testing
+name: CI Pipeline with Self-hosted Runner
+on:
+ push:
+ branches: [ main, develop ]
+ pull_request:
+ branches: [ main ]
+ workflow_dispatch: # Allow manual run from GitHub UI
+jobs:
+ # JOB 1: Code quality check
+ lint-and-format:
+ name: Code Quality Check
+ runs-on: self-hosted
+ steps:
+ - name: Checkout source code
+ uses: actions/checkout@v4
+ - name: Set up Python 3.11
+ uses: actions/setup-python@v5
+ with:
+ python-version: '3.11'
+ - name: Install linting tools
+ run: |
+ python -m pip install --upgrade pip
+ pip install flake8
+ - name: Run flake8 linter
+ run: |
+ # Check for syntax errors and code style
+ # --max-line-length=120: allows lines up to 120 characters
+ flake8 src/ tests/ --max-line-length=120 --statistics
+ # JOB 2: Run Unit Tests
+ run-tests:
+ name: Run Unit Tests
+ runs-on: self-hosted
+ needs: lint-and-format # Only runs after lint succeeds
+ steps:
+ - name: Checkout source code
+ uses: actions/checkout@v4
+ - name: Set up Python 3.11
+ uses: actions/setup-python@v5
+ with:
+ python-version: '3.11'
+ - name: Install dependencies
+ run: |
+ python -m pip install --upgrade pip
+ pip install -r requirements.txt
+ - name: Run tests with coverage report
+ run: |
+ pytest tests/ -v \
+ --cov=src \
+ --cov-report=term-missing \
+ --cov-report=xml:coverage.xml
+ - name: Upload coverage report
+ uses: actions/upload-artifact@v4
+ if: always() # Upload even if tests fail
+ with:
+ name: coverage-report
+ path: coverage.xml
+ # JOB 3: Build Summary
+ build-summary:
+ name: Build Summary
+ runs-on: self-hosted
+ needs: [lint-and-format, run-tests]
+ if: always() # Always runs to summarize results
+ steps:
+ - name: Print success message
+ if: needs.run-tests.result == 'success'
+ run: |
+ echo '================================'
+ echo ' CI PIPELINE PASSED!'
+ echo ' Ready to deploy to production.'
+ echo '================================'
+ - name: Print failure message
+ if: needs.run-tests.result == 'failure'
+ run: |
+ echo ' CI PIPELINE FAILED!'
+ echo ' Check logs to identify errors.'
 
-[cite_start]on: [cite: 304]
-  [cite_start]push: [cite: 305]
-    [cite_start]branches: [ main, develop ] [cite: 306]
-  [cite_start]pull_request: [cite: 306]
-    [cite_start]branches: [ main ] [cite: 307]
-  [cite_start]workflow_dispatch: # Allow manual run from GitHub UI [cite: 308]
-
-[cite_start]jobs: [cite: 309]
-  # JOB 1: Code quality check [cite: 310]
-  [cite_start]lint-and-format: [cite: 311]
-    [cite_start]name: Code Quality Check [cite: 312]
-    [cite_start]runs-on: self-hosted [cite: 312]
-    [cite_start]steps: [cite: 313]
-      - [cite_start]name: Checkout source code [cite: 314]
-        [cite_start]uses: actions/checkout@v4 [cite: 315]
-        
-      - [cite_start]name: Set up Python 3.11 [cite: 316]
-        [cite_start]uses: actions/setup-python@v5 [cite: 316]
-        [cite_start]with: [cite: 316]
-          [cite_start]python-version: '3.11' [cite: 317]
-          
-      - [cite_start]name: Install linting tools [cite: 318]
-        [cite_start]run: | [cite: 319]
-          [cite_start]python -m pip install --upgrade pip [cite: 320]
-          [cite_start]pip install flake8 [cite: 320]
-          
-      - [cite_start]name: Run flake8 linter [cite: 321]
-        [cite_start]run: flake8 src/ tests/ --max-line-length=120 --statistics [cite: 325]
-
-  # JOB 2: Run Unit Tests [cite: 326]
-  [cite_start]run-tests: [cite: 327]
-    [cite_start]name: Run Unit Tests [cite: 328]
-    [cite_start]runs-on: self-hosted [cite: 329]
-    [cite_start]needs: lint-and-format # Only runs after lint succeeds [cite: 330]
-    [cite_start]steps: [cite: 331]
-      - [cite_start]name: Checkout source code [cite: 332]
-        [cite_start]uses: actions/checkout@v4 [cite: 333]
-        
-      - [cite_start]name: Set up Python 3.11 [cite: 334]
-        [cite_start]uses: actions/setup-python@v5 [cite: 335]
-        [cite_start]with: [cite: 336]
-          [cite_start]python-version: '3.11' [cite: 337]
-          
-      - [cite_start]name: Install dependencies [cite: 338]
-        [cite_start]run: | [cite: 339]
-          [cite_start]python -m pip install --upgrade pip [cite: 340]
-          [cite_start]pip install -r requirements.txt [cite: 341]
-          
-      - [cite_start]name: Run tests with coverage report [cite: 342]
-        [cite_start]run: | [cite: 342]
-          [cite_start]python -m pytest tests/ -v --cov src --cov-report term-missing --cov-report=xml:coverage.xml [cite: 343, 344, 345, 346]
-          
-      - [cite_start]name: Upload coverage report [cite: 347]
-        [cite_start]uses: actions/upload-artifact@v4 [cite: 348]
-        [cite_start]if: always() # Upload even if tests fail [cite: 349]
-        [cite_start]with: [cite: 349]
-          [cite_start]name: coverage-report [cite: 350]
-          [cite_start]path: coverage.xml [cite: 351]
-
-  # JOB 3: Build Summary [cite: 352]
-  [cite_start]build-summary: [cite: 352]
-    [cite_start]name: Build Summary [cite: 353]
-    [cite_start]runs-on: self-hosted [cite: 354]
-    [cite_start]needs: [lint-and-format, run-tests] [cite: 355]
-    [cite_start]if: always() # Always runs to summarize results [cite: 356]
-    [cite_start]steps: [cite: 356]
-      - [cite_start]name: Print success message [cite: 357]
-        [cite_start]if: needs.run-tests.result == 'success' [cite: 358]
-        [cite_start]run: | [cite: 358]
-          [cite_start]echo CI PIPELINE PASSED!! [cite: 359]
-          [cite_start]echo Ready to deploy to production. [cite: 361]
-          
-      - [cite_start]name: Print failure message [cite: 363]
-        [cite_start]if: needs.run-tests.result == 'failure' [cite: 364]
-        [cite_start]run: | [cite: 365]
-          [cite_start]echo CI PIPELINE FAILED! [cite: 368]
-          [cite_start]echo Check logs to identify errors. [cite: 369]
+ 
